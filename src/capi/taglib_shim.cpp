@@ -84,7 +84,7 @@ static const FieldMapping FIELD_MAP[] = {
     {"COMPOSER",             "composer",            FIELD_STRING},
     {"CONDUCTOR",            "conductor",           FIELD_STRING},
     {"COPYRIGHT",            "copyright",           FIELD_STRING},
-    {"DATE",                 "year",                FIELD_NUMERIC},
+    {"DATE",                 "year",                FIELD_STRING},
     {"DISCNUMBER",           "discNumber",          FIELD_NUMERIC},
     {"DISCTOTAL",            "totalDiscs",          FIELD_NUMERIC},
     {"ENCODEDBY",            "encodedBy",           FIELD_STRING},
@@ -544,9 +544,6 @@ static void apply_propmap(TagLib::File* file, const TagLib::PropertyMap& propMap
     it = propMap.find("GENRE");
     if (it != propMap.end() && it->second.size() == 1)
         tag->setGenre(it->second.front());
-    it = propMap.find("DATE");
-    if (it != propMap.end() && !it->second.isEmpty())
-        tag->setYear(it->second.front().toInt());
     it = propMap.find("TRACKNUMBER");
     if (it != propMap.end() && !it->second.isEmpty())
         tag->setTrack(it->second.front().toInt());

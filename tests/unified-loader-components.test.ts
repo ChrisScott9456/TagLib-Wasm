@@ -22,7 +22,7 @@ const createMockWasiExports = (
     memory: {
       buffer: new ArrayBuffer(1024),
       grow: () => 1,
-    } as WebAssembly.Memory,
+    } as Partial<WebAssembly.Memory>,
   }),
   malloc: (size: number) => 1000,
   free: (ptr: number) => {},

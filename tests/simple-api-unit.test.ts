@@ -531,6 +531,42 @@ describe("applyTags", () => {
     assertEquals(tags.title?.[0], "New Title");
     assertEquals(tags.artist?.[0], "New Artist");
   });
+
+  it("should preserve full ISO date string when writing date field", async () => {
+    const taglib = await getTagLib();
+    const mp3 = await Deno.readFile(FIXTURE_PATH.mp3);
+    const result = await applyTags(new Uint8Array(mp3), {
+      date: "1975-10-31",
+    });
+    const audioFile = await taglib.open(result);
+    try {
+      assertEquals(audioFile.properties()["date"], ["1975-10-31"]);
+    } finally {
+      audioFile.dispose();
+    }
+  });
+
+  it("should write integer year field without truncating existing date precision", async () => {
+    const mp3 = await Deno.readFile(FIXTURE_PATH.mp3);
+    const result = await applyTags(new Uint8Array(mp3), { year: 2024 });
+    const tags = await readTags(result);
+    assertEquals(tags.year, 2024);
+  });
+
+  it("should use date field over year field when both are set", async () => {
+    const taglib = await getTagLib();
+    const mp3 = await Deno.readFile(FIXTURE_PATH.mp3);
+    const result = await applyTags(new Uint8Array(mp3), {
+      year: 2024,
+      date: "1975-10-31",
+    });
+    const audioFile = await taglib.open(result);
+    try {
+      assertEquals(audioFile.properties()["date"], ["1975-10-31"]);
+    } finally {
+      audioFile.dispose();
+    }
+  });
 });
 
 describe("applyTagsToFile", () => {

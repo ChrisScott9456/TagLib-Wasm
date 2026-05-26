@@ -20,6 +20,7 @@ const BASIC_FIELDS = new Set([
   "genre",
   "year",
   "track",
+  "date",
 ]);
 
 const NUMERIC_FIELDS = new Set([
@@ -97,6 +98,10 @@ export function normalizeTagInput(
   }
   if (input.year !== undefined) {
     props.date = [String(input.year)];
+  }
+  if (input.date !== undefined) {
+    const d = input.date;
+    props.date = Array.isArray(d) ? d : [d];
   }
   if (input.track !== undefined) {
     props.trackNumber = [String(input.track)];

@@ -255,6 +255,20 @@ describe("WasiFileHandle", () => {
     assertEquals(fh.getTagData().track, 7);
   });
 
+  it("should preserve full ISO date in setProperty()", () => {
+    const mock = createMockWasiModule();
+    mock.tl_read_tags = stubTlReadTags(mock);
+
+    const adapter = new WasiToTagLibAdapter(mock);
+    const fh = adapter.createFileHandle();
+    fh.loadFromBuffer(new Uint8Array([0xFF, 0xFB, 0, 0, 0, 0, 0, 0, 0, 0]));
+
+    fh.setProperty("DATE", "1975-10-31");
+    assertEquals(fh.getProperty("DATE"), "1975-10-31");
+    assertEquals(fh.getProperties()["DATE"], ["1975-10-31"]);
+    assertEquals(fh.getTagData().year, 1975);
+  });
+
   it("should manage MP4 items via property interface", () => {
     const mock = createMockWasiModule();
     mock.tl_read_tags = stubTlReadTags(mock);
@@ -504,7 +518,7 @@ describe("WasiFileHandle.setProperties()", () => {
     assertEquals(fh.getProperty("MYCUSTOMKEY"), "custom value");
   });
 
-  it("should handle numeric value conversion for DATE", () => {
+  it("should handle year-only DATE value", () => {
     const mock = createMockWasiModule();
     mock.tl_read_tags = stubTlReadTags(mock);
 
@@ -513,7 +527,34 @@ describe("WasiFileHandle.setProperties()", () => {
     fh.loadFromBuffer(new Uint8Array([0xFF, 0xFB, 0, 0, 0, 0, 0, 0, 0, 0]));
 
     fh.setProperties({ DATE: ["2024"] });
+    assertEquals(fh.getProperties()["DATE"], ["2024"]);
     assertEquals(fh.getTagData().year, 2024);
+  });
+
+  it("should preserve full ISO date without truncation", () => {
+    const mock = createMockWasiModule();
+    mock.tl_read_tags = stubTlReadTags(mock);
+
+    const adapter = new WasiToTagLibAdapter(mock);
+    const fh = adapter.createFileHandle();
+    fh.loadFromBuffer(new Uint8Array([0xFF, 0xFB, 0, 0, 0, 0, 0, 0, 0, 0]));
+
+    fh.setProperties({ DATE: ["1975-10-31"] });
+    assertEquals(fh.getProperties()["DATE"], ["1975-10-31"]);
+    assertEquals(fh.getTagData().year, 1975);
+  });
+
+  it("should preserve full date when editing unrelated tag", () => {
+    const mock = createMockWasiModule();
+    mock.tl_read_tags = stubTlReadTags(mock);
+
+    const adapter = new WasiToTagLibAdapter(mock);
+    const fh = adapter.createFileHandle();
+    fh.loadFromBuffer(new Uint8Array([0xFF, 0xFB, 0, 0, 0, 0, 0, 0, 0, 0]));
+
+    fh.setProperties({ DATE: ["1975-10-31"], TITLE: ["Old Title"] });
+    fh.setProperties({ ...fh.getProperties(), ARTIST: ["New Artist"] });
+    assertEquals(fh.getProperties()["DATE"], ["1975-10-31"]);
   });
 
   it("should handle numeric value conversion for TRACKNUMBER", () => {

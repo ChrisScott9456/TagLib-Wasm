@@ -73,6 +73,8 @@ export interface TagInput {
   readonly genre?: string | string[];
   /** Year */
   readonly year?: number;
+  /** Full ISO date string (e.g. "1975-10-31" or "1975"). Maps to the same DATE tag as year; date wins when both are set. */
+  readonly date?: string | string[];
   /** Track number */
   readonly track?: number;
 

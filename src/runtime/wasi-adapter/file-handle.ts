@@ -148,7 +148,9 @@ export class WasiFileHandle implements FileHandle {
       album: firstString(d.album),
       comment: firstString(d.comment),
       genre: firstString(d.genre),
-      year: (d.year as number) || 0,
+      year: typeof d.year === "number"
+        ? d.year
+        : (Number.parseInt(d.year as string, 10) || 0),
       track: (d.track as number) || 0,
     };
   }
@@ -299,9 +301,11 @@ export class WasiFileHandle implements FileHandle {
     for (const [key, values] of Object.entries(props)) {
       const camelKey = fromTagLibKey(key);
       const storeKey = NUMERIC_FIELD_ALIASES[camelKey] ?? camelKey;
-      if (storeKey === "year" || storeKey === "track") {
+      if (storeKey === "track") {
         const parsed = Number.parseInt(values[0] ?? "", 10);
         if (!Number.isNaN(parsed)) mapped[storeKey] = parsed;
+      } else if (storeKey === "year") {
+        if (values[0]) mapped[storeKey] = values[0];
       } else {
         mapped[camelKey] = values;
       }
@@ -320,11 +324,13 @@ export class WasiFileHandle implements FileHandle {
     this.checkNotDestroyed();
     const mappedKey = fromTagLibKey(key);
     const storeKey = NUMERIC_FIELD_ALIASES[mappedKey] ?? mappedKey;
-    if (storeKey === "year" || storeKey === "track") {
+    if (storeKey === "track") {
       const parsed = Number.parseInt(value, 10);
       if (!Number.isNaN(parsed)) {
         this.tagData = { ...this.tagData, [storeKey]: parsed };
       }
+    } else if (storeKey === "year") {
+      if (value) this.tagData = { ...this.tagData, [storeKey]: value };
     } else {
       this.tagData = { ...this.tagData, [mappedKey]: value };
     }
